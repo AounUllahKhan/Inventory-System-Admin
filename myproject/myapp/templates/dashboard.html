@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block content %}
+	{% if messages %}
+		<div class="row mt-3">
+			{% for message in messages %}
+				{% if message.tags == 'error' %}
+					<div class="col-md-10 col-12 mx-auto alert alert-danger">
+						{{ message }}
+					</div>
+				{% else %}
+					<div class="col-md-10 col-12 mx-auto alert alert-success">
+						{{ message }}
+					</div>
+				{% endif %}
+			{% endfor %}
+		</div>
+	{% endif %}
+	<div class="row">
+		<div class="col-md-10 col-12 mx-auto mt-5">
+			<div class="d-flex justify-content-end">
+				<a href="{% url 'category_list' %}" class="btn btn-primary">+</a>
+			</div>
+
+		</div>
+	</div>
+{% endblock content %}

@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block content %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Item Form</title>
+</head>
+<body>
+    <h2>Item Form</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Save</button>
+    </form>
+    <a href="{% url 'item_list' category.id %}">Cancel</a>
+</body>
+</html>
+{% endblock content %}

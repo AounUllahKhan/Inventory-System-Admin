@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block content %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Items in {{ category.name }}</title>
+</head>
+<body>
+    <h2>Items in {{ category.name }}</h2>
+    <a href="{% url 'item_create' category.id %}">Add new item</a>
+    {% if alert %}
+            <div class="alert alert-warning" role="alert">
+                One or more items have a quantity less than 25!
+            </div>
+        {% endif %}
+    <ul>
+        {% for item in items %}
+            <li>
+                {{ item.name }}: {{ item.description }}
+                {{item.quantity}}
+                <a href="{% url 'item_update' category.id item.id %}">Edit</a>
+                <a href="{% url 'item_delete' category.id item.id %}">Delete</a>
+            </li>
+        {% endfor %}
+    </ul>
+    <a href="{% url 'category_list' %}">Back to categories</a>
+</body>
+</html>
+{% endblock content %}
+

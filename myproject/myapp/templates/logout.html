@@ -1,0 +1,25 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Logout</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container">
+        {% block content %}
+            <div class="row">
+                <div class="col-11 col-md-4 mx-auto mt-5">
+                    <h2>You Have Been Logged Out</h2>
+                    <div class="border-top pt-3">
+                        <small class="text-muted">
+                            <a href="{% url 'login' %}">Log In Again</a>
+                        </small>
+                    </div>
+                </div>
+            </div>
+        {% endblock content %}
+    </div>
+</body>
+</html>
+
