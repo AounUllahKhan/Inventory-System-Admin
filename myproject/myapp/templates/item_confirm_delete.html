@@ -1,12 +1,59 @@
 {% extends 'base.html' %}
-
 {% block content %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Confirm Delete</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 500px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        h2 {
+            color: #333;
+        }
+        button[type="submit"],
+        .cancel-link {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            text-decoration: none;
+            display: inline-block;
+            margin-right: 10px;
+        }
+        .cancel-link {
+            background-color: #bbb;
+        }
+        button[type="submit"]:hover,
+        .cancel-link:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
     <div class="container">
-        <h2>Are you sure you want to delete "{{ item.name }}"?</h2>
+        <h2>Are you sure you want to delete "{{ category.name }}"?</h2>
         <form method="post">
             {% csrf_token %}
-            <button type="submit" class="btn btn-danger">Yes, delete</button>
-            <a href="{% url 'item_list' category.id %}" class="btn btn-secondary">Cancel</a>
+            <button type="submit">Yes, delete</button>
+            <a class="cancel-link" href="{% url 'category_list' %}">Cancel</a>
         </form>
     </div>
+</body>
+</html>
 {% endblock content %}

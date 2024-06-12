@@ -66,7 +66,7 @@ def category_list(request):
 @login_required
 def category_create(request):
     if request.method == 'POST':
-        form = CategoryForm(request.POST)
+        form=CategoryForm(data=request.POST,files=request.FILES)
         if form.is_valid():
             category = form.save(commit=False)
             category.user = request.user
@@ -80,12 +80,12 @@ def category_create(request):
 def category_update(request, pk):
     category = get_object_or_404(Category, pk=pk, user=request.user)
     if request.method == 'POST':
-        form = CategoryForm(request.POST, instance=category)
+        form = CategoryForm(request.POST, instance=category,files=request.FILES)
         if form.is_valid():
             form.save()
             return redirect('category_list')
     else:
-        form = CategoryForm(instance=category)
+        form = CategoryForm(instance=category, files=request.FILES)
     return render(request, 'category_form.html', {'form': form})
 
 @login_required
@@ -107,22 +107,24 @@ def item_list(request, category_id):
 def item_create(request, category_id):
     category = get_object_or_404(Category, id=category_id, user=request.user)
     if request.method == 'POST':
-        form = ItemForm(request.POST)
+        form = ItemForm(request.POST, files=request.FILES)
         if form.is_valid():
             item = form.save(commit=False)
             item.category = category
             item.save()
-            return redirect('item_list', category_id=category.id)
+            return redirect('item_list',category_id=category.id)
+        
     else:
         form = ItemForm()
     return render(request, 'item_form.html', {'form': form, 'category': category})
+
 
 @login_required
 def item_update(request, category_id, pk):
     category = get_object_or_404(Category, id=category_id, user=request.user)
     item = get_object_or_404(Item, pk=pk, category=category)
     if request.method == 'POST':
-        form = ItemForm(request.POST, instance=item)
+        form = ItemForm(request.POST, instance=item, files=request.FILES)
         if form.is_valid():
             form.save()
             return redirect('item_list', category_id=category.id)

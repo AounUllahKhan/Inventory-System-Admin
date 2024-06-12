@@ -4,27 +4,124 @@
 <html>
 <head>
     <title>Items in {{ category.name }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            padding: 20px;
+            flex: 1;
+        }
+        .item-card {
+            flex: 0 1 calc(25% - 20px);
+            box-sizing: border-box;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            background-color: #fff;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .item-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .item-card img {
+            display: block;
+            margin: 0 auto 10px;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+        }
+        .item-card a {
+            text-decoration: none;
+            color: #333;
+            font-weight: bold;
+            display: block;
+            margin: 10px 0;
+        }
+        .item-card a:hover {
+            text-decoration: underline;
+        }
+        .item-actions {
+            margin-top: 10px;
+        }
+        .item-actions a {
+            margin: 0 5px;
+            text-decoration: none;
+            color: #007BFF;
+            border: 1px solid #007BFF;
+            border-radius: 5px;
+            padding: 5px 10px;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .item-actions a:hover {
+            background-color: #007BFF;
+            color: #fff;
+        }
+        .header {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .add-item {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+        }
+        .add-item a {
+            text-decoration: none;
+            background-color: #28a745;
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 5px;
+            transition: background-color 0.2s;
+        }
+        .add-item a:hover {
+            background-color: #218838;
+        }
+        .back-link {
+            text-align: center;
+            margin: 20px;
+        }
+    </style>
 </head>
 <body>
-    <h2>Items in {{ category.name }}</h2>
-    <a href="{% url 'item_create' category.id %}">Add new item</a>
+    <h2 class="header">Items in {{ category.name }}</h2>
     {% if alert %}
-            <div class="alert alert-warning" role="alert">
-                One or more items have a quantity less than 25!
-            </div>
-        {% endif %}
-    <ul>
+        <div class="alert alert-warning" role="alert" style="text-align: center; color: #856404; background-color: #fff3cd; border-color: #ffeeba; padding: 10px; border-radius: 5px; margin: 10px;">
+            One or more items have a quantity less than 25!
+        </div>
+    {% endif %}
+    <div class="container">
         {% for item in items %}
-            <li>
-                {{ item.name }}: {{ item.description }}
-                {{item.quantity}}
-                <a href="{% url 'item_update' category.id item.id %}">Edit</a>
-                <a href="{% url 'item_delete' category.id item.id %}">Delete</a>
-            </li>
+            <div class="item-card">
+                {% if item.image %}
+                    <img src="{{ item.image.url }}" alt="{{ item.name }}">
+                {% endif %}
+                <p>{{ item.name }}: {{ item.description }} ({{ item.quantity }})</p>
+                <div class="item-actions">
+                    <a href="{% url 'item_update' category.id item.id %}">Edit</a>
+                    <a href="{% url 'item_delete' category.id item.id %}">Delete</a>
+                </div>
+            </div>
         {% endfor %}
-    </ul>
-    <a href="{% url 'category_list' %}">Back to categories</a>
+    </div>
+    <div class="add-item">
+        <a href="{% url 'item_create' category.id %}">Add new item</a>
+    </div>
+    <div class="back-link">
+        <a href="{% url 'category_list' %}">Back to categories</a>
+    </div>
 </body>
 </html>
 {% endblock content %}
-

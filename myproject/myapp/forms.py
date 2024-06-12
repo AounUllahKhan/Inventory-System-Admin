@@ -6,12 +6,12 @@ from django.contrib.auth.forms import UserCreationForm
 class CategoryForm(forms.ModelForm):
     class Meta:
         model = Category
-        fields = ['name']
+        fields = ['name','image']
 
 class ItemForm(forms.ModelForm):
     class Meta:
         model = Item
-        fields = ['name', 'description', 'quantity','category']
+        fields = ['name', 'description', 'quantity','category','image']
 
 class UserRegisterForm(UserCreationForm):
 	email = forms.EmailField()
@@ -19,3 +19,5 @@ class UserRegisterForm(UserCreationForm):
 	class Meta:
 		model = User
 		fields = ['username', 'email', 'password1', 'password2']
+
+

@@ -1,18 +1,84 @@
-{% extends 'base.html' %}
-{% block content %}
+
 <!DOCTYPE html>
 <html>
 <head>
     <title>Item Form</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 500px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+        form {
+            margin-top: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #666;
+        }
+        input[type="text"],
+        input[type="file"],
+        select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        button[type="submit"] {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button[type="submit"]:hover {
+            background-color: #45a049;
+        }
+        .cancel-link {
+            display: block;
+            margin-top: 10px;
+            text-align: center;
+            text-decoration: none;
+            color: #333;
+        }
+    </style>
 </head>
 <body>
-    <h2>Item Form</h2>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Save</button>
-    </form>
-    <a href="{% url 'item_list' category.id %}">Cancel</a>
+    <div class="container">
+        <h2>Item Form</h2>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <label for="id_name">Name:</label>
+            {{ form.name }}
+            <label for="id_description">Description:</label>
+            {{ form.description }}
+            <label for="id_quantity">Quantity:</label>
+            {{ form.quantity }}
+            <label for="id_category">Category</label>
+            {{ form.category }}
+            <label for="id_image">Image:</label>
+            {{ form.image }}
+            <button type="submit">Save</button>
+        </form>
+        <a class="cancel-link" href="{% url 'item_list' category.id %}">Cancel</a>
+    </div>
 </body>
 </html>
-{% endblock content %}

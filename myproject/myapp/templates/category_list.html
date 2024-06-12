@@ -4,19 +4,112 @@
 <html>
 <head>
     <title>Categories</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            padding: 20px;
+            flex: 1;
+        }
+        .category-card {
+            flex: 0 1 calc(25% - 20px);
+            box-sizing: border-box;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            background-color: #fff;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .category-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .category-card img {
+            display: block;
+            margin: 0 auto 10px;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+        }
+        .category-card a {
+            text-decoration: none;
+            color: #333;
+            font-weight: bold;
+            display: block;
+            margin: 10px 0;
+        }
+        .category-card a:hover {
+            text-decoration: underline;
+        }
+        .category-actions {
+            margin-top: 10px;
+        }
+        .category-actions a {
+            margin: 0 5px;
+            text-decoration: none;
+            color: #007BFF;
+            border: 1px solid #007BFF;
+            border-radius: 5px;
+            padding: 5px 10px;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .category-actions a:hover {
+            background-color: #007BFF;
+            color: #fff;
+        }
+        .header {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .create-category {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+        }
+        .create-category a {
+            text-decoration: none;
+            background-color: #28a745;
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 5px;
+            transition: background-color 0.2s;
+        }
+        .create-category a:hover {
+            background-color: #218838;
+        }
+    </style>
 </head>
 <body>
-    <h2>Categories</h2>
-    <a href="{% url 'category_create' %}">Create new category</a>
-    <ul>
+    <h2 class="header">Categories</h2>
+    <div class="container">
         {% for category in categories %}
-            <li>
+            <div class="category-card">
+                {% if category.image %}
+                    <img src="{{ category.image.url }}" alt="{{ category.name }}">
+                {% endif %}
                 <a href="{% url 'item_list' category.id %}">{{ category.name }}</a>
-                <a href="{% url 'category_update' category.id %}">Edit</a>
-                <a href="{% url 'category_delete' category.id %}">Delete</a>
-            </li>
+                <div class="category-actions">
+                    <a href="{% url 'category_update' category.id %}">Edit</a>
+                    <a href="{% url 'category_delete' category.id %}">Delete</a>
+                </div>
+            </div>
         {% endfor %}
-    </ul>
+    </div>
+    <div class="create-category">
+        <a href="{% url 'category_create' %}">Create new category</a>
+    </div>
 </body>
 </html>
 {% endblock content %}
