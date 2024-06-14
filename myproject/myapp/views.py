@@ -34,19 +34,7 @@ class Dashboard(LoginRequiredMixin, View):
 	def get(self, request):
 		return render(request, 'dashboard.html')
      
-def user_login(request):
-    if request.method == 'POST':
-        form = AuthenticationForm(request, data=request.POST)
-        if form.is_valid():
-            username = form.cleaned_data.get('username')
-            password = form.cleaned_data.get('password')
-            user = authenticate(username=username, password=password)
-            if user is not None:
-                login(request, user)
-                return redirect('/')
-    else:
-        form = AuthenticationForm()
-    return render(request, 'login.html', {'form': form})
+
 
 @require_POST
 def user_logout(request):
@@ -144,3 +132,6 @@ def item_delete(request, category_id, pk):
         print("Item deleted successfully")  # Debugging statement
         return redirect('item_list', category_id=category.id)
     return render(request, 'item_confirm_delete.html', {'item': item, 'category': category})
+
+
+

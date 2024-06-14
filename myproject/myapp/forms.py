@@ -11,7 +11,7 @@ class CategoryForm(forms.ModelForm):
 class ItemForm(forms.ModelForm):
     class Meta:
         model = Item
-        fields = ['name', 'description', 'quantity','category','image']
+        fields = ['name', 'description', 'quantity','image']
 
 class UserRegisterForm(UserCreationForm):
 	email = forms.EmailField()
