@@ -1,63 +1,108 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, authenticate, logout
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from .forms import UserRegisterForm
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import TemplateView, View
 from django.views.decorators.http import require_POST
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.http import HttpResponseForbidden
+from .models import Category, Item, User, Warehouse
+from .forms import CategoryForm, ItemForm, UserRegisterForm, WarehouseSignUpForm, LoginForm
+from django.contrib.auth.decorators import login_required
 
 class Index(TemplateView):
-	template_name = 'index.html'
-     
-class SignUpView(View):
-	def get(self, request):
-		form = UserRegisterForm()
-		return render(request, 'signup.html', {'form': form})
-
-	def post(self, request):
-		form = UserRegisterForm(request.POST)
-
-		if form.is_valid():
-			form.save()
-			user = authenticate(
-				username=form.cleaned_data['username'],
-				password=form.cleaned_data['password1']
-			)
-
-			login(request, user)
-			return redirect('index')
-
-		return render(request, 'signup.html', {'form': form})
-
+    template_name = 'index.html'
 
 class Dashboard(LoginRequiredMixin, View):
-	def get(self, request):
-		return render(request, 'dashboard.html')
-     
+    def get(self, request):
+        if request.user.is_warehouse:
+            categories = Category.objects.filter(warehouse=request.user.warehouse)
+            return render(request, 'dashboard.html', {'categories': categories})
+        else:
+            return HttpResponseForbidden("You do not have permission to access this page.")
 
 
+
+def warehouse_signup(request):
+    if request.method == 'POST':
+        form = WarehouseSignUpForm(request.POST)
+        if form.is_valid():
+            user = form.save(commit=False)
+            user.is_warehouse = True
+            user.save()
+            warehouse = Warehouse.objects.create(name=f"{user.username}'s Warehouse", location='Default location', manager=user)
+            user.warehouse = warehouse
+            user.save()
+            login(request, user)
+            return redirect('index')
+    else:
+        form = WarehouseSignUpForm()
+    return render(request, 'signup.html', {'form': form})
+
+def warehouse_login(request):
+    if request.method == 'POST':
+        form = LoginForm(data=request.POST)
+        if form.is_valid():
+            user = authenticate(username=form.cleaned_data['username'], password=form.cleaned_data['password'])
+            if user is not None and user.is_active and user.is_warehouse:
+                login(request, user)
+                return redirect('index')
+    else:
+        form = LoginForm()
+    return render(request, 'login.html', {'form': form})
+
+def user_signup(request):
+    if not request.user.is_authenticated or not request.user.is_warehouse:
+        return redirect('warehouse_login')  # Ensure warehouse user is logged in first
+
+    if request.method == 'POST':
+        form = UserRegisterForm(request.POST)
+        if form.is_valid():
+            user = form.save(commit=False)
+            user.is_user = True
+            user.warehouse = request.user.warehouse
+            user.save()
+            login(request, user)
+            return redirect('index')
+    else:
+        form = UserRegisterForm()
+    return render(request, 'user_signup.html', {'form': form})
+
+def user_login(request):
+    if request.method == 'POST':
+        form = LoginForm(data=request.POST)
+        if form.is_valid():
+            user = authenticate(username=form.cleaned_data['username'], password=form.cleaned_data['password'])
+            if user is not None and user.is_active and user.is_user:
+                login(request, user)
+                return redirect('category_list')
+    else:
+        form = LoginForm()
+    return render(request, 'user_login.html', {'form': form})
+
+# warehouse logout
+@login_required
 @require_POST
-def user_logout(request):
+def warehouse_logout(request):
     logout(request)
     return render(request, 'logout.html')
 
-from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth.decorators import login_required
-from .models import Category, Item
-from .forms import CategoryForm, ItemForm
+@login_required
+@require_POST
+def user_logout(request):
+    logout(request)
+    return render(request, 'user_logout.html')
 
 @login_required
 def category_list(request):
-    categories = Category.objects.filter(user=request.user)
+    categories = Category.objects.filter(warehouse=request.user.warehouse)
     return render(request, 'category_list.html', {'categories': categories})
 
 @login_required
 def category_create(request):
     if request.method == 'POST':
-        form=CategoryForm(data=request.POST,files=request.FILES)
+        form = CategoryForm(request.POST, request.FILES)
         if form.is_valid():
             category = form.save(commit=False)
-            category.user = request.user
+            category.warehouse = request.user.warehouse
             category.save()
             return redirect('category_list')
     else:
@@ -66,72 +111,70 @@ def category_create(request):
 
 @login_required
 def category_update(request, pk):
-    category = get_object_or_404(Category, pk=pk, user=request.user)
-    if request.method == 'POST':
-        form = CategoryForm(request.POST, instance=category,files=request.FILES)
-        if form.is_valid():
-            form.save()
-            return redirect('category_list')
+    category = get_object_or_404(Category, pk=pk)
+    if category.warehouse == request.user.warehouse:
+        if request.method == 'POST':
+            form = CategoryForm(request.POST, request.FILES, instance=category)
+            if form.is_valid():
+                form.save()
+                return redirect('category_list')
+        else:
+            form = CategoryForm(instance=category)
+        return render(request, 'category_form.html', {'form': form})
     else:
-        form = CategoryForm(instance=category, files=request.FILES)
-    return render(request, 'category_form.html', {'form': form})
+        return HttpResponseForbidden("You do not have permission to edit this category.")
 
 @login_required
 def category_delete(request, pk):
-    category = get_object_or_404(Category, pk=pk, user=request.user)
-    if request.method == 'POST':
-        category.delete()
-        return redirect('category_list')
-    return render(request, 'category_confirm_delete.html', {'category': category})
+    category = get_object_or_404(Category, pk=pk)
+    if category.warehouse == request.user.warehouse:
+        if request.method == 'POST':
+            category.delete()
+            return redirect('category_list')
+        else:
+            return render(request, 'category_confirm_delete.html', {'category': category})
+    else:
+        return HttpResponseForbidden("You do not have permission to delete this category.")
 
 @login_required
 def item_list(request, category_id):
-    category = get_object_or_404(Category, id=category_id)
+    category = get_object_or_404(Category, pk=category_id)
     items = Item.objects.filter(category=category)
     alert = any(item.quantity < 25 for item in items)
     return render(request, 'item_list.html', {'category': category, 'items': items, 'alert': alert})
 
 @login_required
 def item_create(request, category_id):
-    category = get_object_or_404(Category, id=category_id, user=request.user)
+    category = get_object_or_404(Category, pk=category_id)
     if request.method == 'POST':
-        form = ItemForm(request.POST, files=request.FILES)
+        form = ItemForm(request.POST, request.FILES)
         if form.is_valid():
             item = form.save(commit=False)
             item.category = category
             item.save()
-            return redirect('item_list',category_id=category.id)
-        
+            return redirect('item_list', category_id=category.id)
     else:
         form = ItemForm()
     return render(request, 'item_form.html', {'form': form, 'category': category})
 
-
 @login_required
 def item_update(request, category_id, pk):
-    category = get_object_or_404(Category, id=category_id, user=request.user)
-    item = get_object_or_404(Item, pk=pk, category=category)
+    category = get_object_or_404(Category, pk=category_id)
+    item = get_object_or_404(Item, pk=pk)
     if request.method == 'POST':
-        form = ItemForm(request.POST, instance=item, files=request.FILES)
+        form = ItemForm(request.POST, request.FILES, instance=item)
         if form.is_valid():
             form.save()
-            return redirect('item_list', category_id=category.id)
+            return redirect('item_list', category_id=category_id)
     else:
         form = ItemForm(instance=item)
     return render(request, 'item_form.html', {'form': form, 'category': category})
 
-
 @login_required
 def item_delete(request, category_id, pk):
-    category = get_object_or_404(Category, id=category_id, user=request.user)
-    item = get_object_or_404(Item, pk=pk, category=category)
-    print("Item to delete:", item)  # Debugging statement
+    category = get_object_or_404(Category, pk=category_id)
+    item = get_object_or_404(Item, pk=pk)
     if request.method == 'POST':
-        print("Received POST request")  # Debugging statement
         item.delete()
-        print("Item deleted successfully")  # Debugging statement
-        return redirect('item_list', category_id=category.id)
+        return redirect('item_list', category_id=category_id)
     return render(request, 'item_confirm_delete.html', {'item': item, 'category': category})
-
-
-

@@ -8,8 +8,20 @@
 			<p class="fw-light">Keep track of your inventory and receive quantity alerts for low inventory</p>
 
 			<div>
-				<a href="{% url 'category_list' %}" class="btn btn-primary">Get Started Now!</a>
+				{% if user.is_authenticated %}
+					{% if user.is_warehouse %}
+						{% if not user.is_user %}
+							<a href="{% url 'user_login' %}" class="btn btn-primary">Get Started Now!</a>
+						{% endif %}
+					{% else %}
+						<p>Warehouse login required</p>
+						<a href="{% url 'warehouse_login' %}" class="btn btn-primary">Warehouse Sign In</a>
+					{% endif %}
+				{% else %}
+					<a href="{% url 'warehouse_login' %}" class="btn btn-primary">Get Started Now!</a>
+				{% endif %}
 			</div>
+			
 		</div>
 	</div>
 </div>

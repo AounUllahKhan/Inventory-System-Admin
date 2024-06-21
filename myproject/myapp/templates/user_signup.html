@@ -4,7 +4,7 @@
 {% block content %}
     <div class="row">
         <div class="col-11 col-md-4 mx-auto mt-5">
-            <h1>Sign Up Warehouse</h1>
+            <h1>Sign Up User</h1>
             {% if form.errors %}
                 {% for field in form %}
                     {% for error in field.errors %}
@@ -28,7 +28,7 @@
             </form>
 
             <div class="pt-3">
-                <small class="text-muted">Already have an account? <a href="{% url 'warehouse_login' %}" class="ml-2">Sign In</a></small>
+                <small class="text-muted">Already have an account? <a href="{% url 'user_login' %}" class="ml-2">Sign In</a></small>
             </div>
         </div>
     </div>

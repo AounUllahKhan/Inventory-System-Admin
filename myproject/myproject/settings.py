@@ -139,5 +139,6 @@ CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 CRISPY_TEMPLATE_PACK = 'bootstrap5'
 LOGIN_REDIRECT_URL = '/categories'
 LOGOUT_REDIRECT_URL = '/dashboard'
-LOGIN_URL = 'login'
+LOGIN_URL = 'user_login'
 
+AUTH_USER_MODEL = 'myapp.User'

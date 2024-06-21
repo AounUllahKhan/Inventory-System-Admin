@@ -2,35 +2,63 @@
     <div class="container-fluid">
         <a class="navbar-brand" href="{% url 'index' %}" style="color: #fff;">Inventory Manager</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
             <ul class="navbar-nav">
                 {% if user.is_authenticated %}
-                <li class="nav-item">
-                    <a class="nav-link" href="#" style="color: #fff;">{{ user.username }}</a>
-                </li>
+                    {% if user.is_warehouse %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" style="color: #fff;">{{ user.username }}</a>
+                        </li>
+                        <li class="nav-item">
+                            <form method="post" action="{% url 'warehouse_logout' %}" style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-link nav-link"
+                                        style="display:inline; padding: 8px; border: none; background: none; cursor: pointer; color: #fff; margin-top: -1px;">
+                                    Warehouse Sign Out
+                                </button>
+                            </form>
+                        </li>
 
-                <li class="nav-item">
-                    <form method="post" action="{% url 'logout' %}" style="display:inline;">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-link nav-link"
-                            style="display:inline; padding: 8; border: none; background: none; cursor: pointer; color: #fff;margin-top: -1px;">
-                            Sign Out
-                        </button>
-                    </form>
-                </li>
+                        <li class="nav-item">
+                            <form method="post" action="{% url 'user_login' %}" style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-link nav-link"
+                                        style="display:inline; padding: 8px; border: none; background: none; cursor: pointer; color: #fff; margin-top: -1px;">
+                                    User Login
+                                </button>
+                            </form>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" style="color: #fff;">{{ user.username }}</a>
+                        </li>
+                        <li class="nav-item">
+                            <form method="post" action="{% url 'user_logout' %}" style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-link nav-link"
+                                        style="display:inline; padding: 8px; border: none; background: none; cursor: pointer; color: #fff; margin-top: -1px;">
+                                    User Sign Out
+                                </button>
+                            </form>
+                        </li>
+                    {% endif %}
                 {% else %}
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'login' %}" style="color: #fff;">Sign In</a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'signup' %}" style="color: #fff;">Sign Up</a>
-                </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'warehouse_login' %}" style="color: #fff;">Warehouse Sign In</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'warehouse_signup' %}" style="color: #fff;">Warehouse Sign Up</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'user_signup' %}" style="color: #fff;">User Signup</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'user_login' %}" style="color: #fff;">User Login</a>
+                    </li>
                 {% endif %}
-
             </ul>
         </div>
     </div>
