@@ -7,6 +7,8 @@ from django.http import HttpResponseForbidden
 from .models import Category, Item, User, Warehouse
 from .forms import CategoryForm, ItemForm, UserRegisterForm, WarehouseSignUpForm, LoginForm
 from django.contrib.auth.decorators import login_required
+from django.utils import timezone
+from django.contrib.sessions.models import Session
 
 class Index(TemplateView):
     template_name = 'index.html'
@@ -18,8 +20,6 @@ class Dashboard(LoginRequiredMixin, View):
             return render(request, 'dashboard.html', {'categories': categories})
         else:
             return HttpResponseForbidden("You do not have permission to access this page.")
-
-
 
 def warehouse_signup(request):
     if request.method == 'POST':
@@ -72,24 +72,47 @@ def user_login(request):
         if form.is_valid():
             user = authenticate(username=form.cleaned_data['username'], password=form.cleaned_data['password'])
             if user is not None and user.is_active and user.is_user:
-                login(request, user)
-                return redirect('category_list')
+                # Check if the user has access to the warehouse
+                if hasattr(request.user, 'warehouse') and user.warehouse == request.user.warehouse:
+                    login(request, user)
+                    return redirect('category_list')
+                else:
+                    return HttpResponseForbidden("You do not have permission to access this warehouse.")
     else:
         form = LoginForm()
     return render(request, 'user_login.html', {'form': form})
 
-# warehouse logout
+# Helper function to logout all users associated with a warehouse
+def logout_associated_users(warehouse):
+    associated_users = User.objects.filter(warehouse=warehouse, is_user=True)
+    active_sessions = Session.objects.filter(expire_date__gte=timezone.now())
+
+    for session in active_sessions:
+        session_data = session.get_decoded()
+        session_user_id = session_data.get('_auth_user_id')
+        session_warehouse_id = session_data.get('warehouse_id')
+
+        if session_user_id and session_warehouse_id:
+            user = User.objects.filter(id=session_user_id).first()
+            if user and user in associated_users and session_warehouse_id == warehouse.id:
+                session.delete()
+
+# Warehouse logout: logs out warehouse and associated users
 @login_required
 @require_POST
 def warehouse_logout(request):
-    logout(request)
+    warehouse = request.user.warehouse
+    logout_associated_users(warehouse)
+    logout(request)  # Logout the current warehouse
     return render(request, 'logout.html')
 
+# User logout: logs out only the user
 @login_required
 @require_POST
 def user_logout(request):
-    logout(request)
+    logout(request)  # Logout the current user
     return render(request, 'user_logout.html')
+
 
 @login_required
 def category_list(request):

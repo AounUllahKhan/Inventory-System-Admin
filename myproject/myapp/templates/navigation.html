@@ -21,22 +21,15 @@
                                 </button>
                             </form>
                         </li>
-
                         <li class="nav-item">
-                            <form method="post" action="{% url 'user_login' %}" style="display:inline;">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-link nav-link"
-                                        style="display:inline; padding: 8px; border: none; background: none; cursor: pointer; color: #fff; margin-top: -1px;">
-                                    User Login
-                                </button>
-                            </form>
+                            <a class="nav-link" href="{% url 'user_login' %}" style="color: #fff;">User Login</a>
                         </li>
                     {% else %}
                         <li class="nav-item">
                             <a class="nav-link" href="#" style="color: #fff;">{{ user.username }}</a>
                         </li>
                         <li class="nav-item">
-                            <form method="post" action="{% url 'user_logout' %}" style="display:inline;">
+                            <form method="post" action="{% url 'user_login' %}" style="display:inline;">
                                 {% csrf_token %}
                                 <button type="submit" class="btn btn-link nav-link"
                                         style="display:inline; padding: 8px; border: none; background: none; cursor: pointer; color: #fff; margin-top: -1px;">
