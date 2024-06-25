@@ -5,10 +5,13 @@ from django.views.generic import TemplateView, View
 from django.views.decorators.http import require_POST
 from django.http import HttpResponseForbidden
 from .models import Category, Item, User, Warehouse
-from .forms import CategoryForm, ItemForm, UserRegisterForm, WarehouseSignUpForm, LoginForm
+from .forms import CategoryForm, ItemForm, UserRegisterForm, WarehouseSignUpForm, LoginForm, ItemUploadForm
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from django.contrib.sessions.models import Session
+import csv
+import io
+from django.contrib import messages
 
 class Index(TemplateView):
     template_name = 'index.html'
@@ -82,7 +85,6 @@ def user_login(request):
         form = LoginForm()
     return render(request, 'user_login.html', {'form': form})
 
-# Helper function to logout all users associated with a warehouse
 def logout_associated_users(warehouse):
     associated_users = User.objects.filter(warehouse=warehouse, is_user=True)
     active_sessions = Session.objects.filter(expire_date__gte=timezone.now())
@@ -97,7 +99,6 @@ def logout_associated_users(warehouse):
             if user and user in associated_users and session_warehouse_id == warehouse.id:
                 session.delete()
 
-# Warehouse logout: logs out warehouse and associated users
 @login_required
 @require_POST
 def warehouse_logout(request):
@@ -106,13 +107,11 @@ def warehouse_logout(request):
     logout(request)  # Logout the current warehouse
     return render(request, 'logout.html')
 
-# User logout: logs out only the user
 @login_required
 @require_POST
 def user_logout(request):
     logout(request)  # Logout the current user
     return render(request, 'user_logout.html')
-
 
 @login_required
 def category_list(request):
@@ -166,20 +165,79 @@ def item_list(request, category_id):
     alert = any(item.quantity < 25 for item in items)
     return render(request, 'item_list.html', {'category': category, 'items': items, 'alert': alert})
 
+
+import os
+from django.conf import settings
+import chardet
 @login_required
 def item_create(request, category_id):
     category = get_object_or_404(Category, pk=category_id)
+    
     if request.method == 'POST':
-        form = ItemForm(request.POST, request.FILES)
-        if form.is_valid():
-            item = form.save(commit=False)
-            item.category = category
-            item.save()
-            return redirect('item_list', category_id=category.id)
+        if 'csv_file' in request.FILES:
+            csv_file = request.FILES['csv_file']
+            if not csv_file.name.endswith('.csv'):
+                messages.error(request, 'This is not a CSV file.')
+                return redirect('item_create', category_id=category.id)
+
+            try:
+                # Detect the file encoding using chardet
+                raw_data = csv_file.read()
+                result = chardet.detect(raw_data)
+                encoding = result['encoding']
+
+                # Decode the file data using the detected encoding
+                file_data = raw_data.decode(encoding)
+                csv_reader = csv.DictReader(io.StringIO(file_data))
+
+                # Check for the required headers
+                if not set(csv_reader.fieldnames) >= {'name', 'description', 'quantity', 'image'}:
+                    messages.error(request, 'CSV file must have name, description, quantity, and image fields.')
+                    return redirect('item_create', category_id=category.id)
+
+                for row in csv_reader:
+                    name = row['name'].strip()
+                    description = row['description'].strip()
+                    quantity = int(row['quantity'].strip())
+                    image_file = row['image'].strip()
+
+                    # Construct the relative image path
+                    image_path = os.path.join(settings.MEDIA_ROOT, image_file)
+
+                    # Ensure the image path is within MEDIA_ROOT
+                    if not os.path.commonprefix([settings.MEDIA_ROOT, image_path]) == settings.MEDIA_ROOT:
+                        messages.error(request, f'Invalid image path: {image_file}')
+                        return redirect('item_create', category_id=category.id)
+
+                    # Create the Item object
+                    item = Item.objects.create(
+                        name=name,
+                        description=description,
+                        quantity=quantity,
+                        image=image_file,  # Save the relative path
+                        category=category
+                    )
+
+                messages.success(request, 'CSV file has been uploaded successfully.')
+                return redirect('item_list', category_id=category.id)
+
+            except Exception as e:
+                print(f'Error uploading CSV file: {e}')
+                messages.error(request, f'Error uploading CSV file: {e}')
+                return redirect('item_create', category_id=category.id)
+
+        else:
+            form = ItemForm(request.POST, request.FILES)
+            if form.is_valid():
+                item = form.save(commit=False)
+                item.category = category
+                item.save()
+                return redirect('item_list', category_id=category.id)
+
     else:
         form = ItemForm()
-    return render(request, 'item_form.html', {'form': form, 'category': category})
 
+    return render(request, 'item_form.html', {'form': form, 'category': category})
 @login_required
 def item_update(request, category_id, pk):
     category = get_object_or_404(Category, pk=category_id)

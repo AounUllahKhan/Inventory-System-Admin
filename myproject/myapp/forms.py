@@ -32,3 +32,8 @@ class UserRegisterForm(UserCreationForm):
 class LoginForm(forms.Form):
     username = forms.CharField(max_length=254)
     password = forms.CharField(widget=forms.PasswordInput)
+
+
+class ItemUploadForm(forms.Form):
+    csv_file = forms.FileField(required=False)
+    
