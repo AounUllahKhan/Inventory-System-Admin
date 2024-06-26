@@ -73,14 +73,20 @@ def user_login(request):
     if request.method == 'POST':
         form = LoginForm(data=request.POST)
         if form.is_valid():
-            user = authenticate(username=form.cleaned_data['username'], password=form.cleaned_data['password'])
-            if user is not None and user.is_active and user.is_user:
-                # Check if the user has access to the warehouse
-                if hasattr(request.user, 'warehouse') and user.warehouse == request.user.warehouse:
+            username = form.cleaned_data['username']
+            password = form.cleaned_data['password']
+            user = authenticate(username=username, password=password)
+            if user is not None and user.is_active:
+                if user.is_superuser:
                     login(request, user)
-                    return redirect('category_list')
-                else:
-                    return HttpResponseForbidden("You do not have permission to access this warehouse.")
+                    return redirect('/admin/')
+                elif user.is_user:  # Adjust this condition based on your model
+                    # Check if the user has access to the warehouse
+                    if hasattr(request.user, 'warehouse') and user.warehouse == request.user.warehouse:
+                        login(request, user)
+                        return redirect('category_list')
+                    else:
+                        return HttpResponseForbidden("You do not have permission to access this warehouse.")
     else:
         form = LoginForm()
     return render(request, 'user_login.html', {'form': form})
