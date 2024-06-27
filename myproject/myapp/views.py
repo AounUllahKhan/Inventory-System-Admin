@@ -23,7 +23,7 @@ class Dashboard(LoginRequiredMixin, View):
             return render(request, 'dashboard.html', {'categories': categories})
         else:
             return HttpResponseForbidden("You do not have permission to access this page.")
-
+            
 def warehouse_signup(request):
     if request.method == 'POST':
         form = WarehouseSignUpForm(request.POST)
@@ -82,11 +82,16 @@ def user_login(request):
                     return redirect('/admin/')
                 elif user.is_user:  # Adjust this condition based on your model
                     # Check if the user has access to the warehouse
-                    if hasattr(request.user, 'warehouse') and user.warehouse == request.user.warehouse:
+                    if hasattr(user, 'warehouse') and user.warehouse == request.user.warehouse:
                         login(request, user)
                         return redirect('category_list')
                     else:
-                        return HttpResponseForbidden("You do not have permission to access this warehouse.")
+                        messages.error(request, "You do not have permission to access this warehouse.")
+                else:
+                    messages.error(request, "Invalid login credentials.")
+            else:
+                messages.error(request, "Invalid login credentials.")
+        
     else:
         form = LoginForm()
     return render(request, 'user_login.html', {'form': form})
